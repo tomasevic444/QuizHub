@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\QuizHub.Application\QuizHub.Application.csproj" />
     <ProjectReference Include="..\QuizHub.Core\QuizHub.Core.csproj" />
   </ItemGroup>
 

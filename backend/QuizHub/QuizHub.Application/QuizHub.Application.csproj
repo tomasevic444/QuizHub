@@ -21,4 +21,8 @@
     <ProjectReference Include="..\QuizHub.Core\QuizHub.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="NewFolder\" />
+  </ItemGroup>
+
 </Project>
