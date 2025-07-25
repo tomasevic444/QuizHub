@@ -3,7 +3,7 @@ import type { Quiz } from '@/interfaces/quiz.interfaces';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-
+import { Link } from 'react-router-dom';
 
 interface QuizCardProps {
   quiz: Quiz;
@@ -31,9 +31,12 @@ export const QuizCard: React.FC<QuizCardProps> = ({ quiz }) => {
         {/* We can add more info here in the future */}
       </CardContent>
       <CardFooter className="flex justify-between items-center">
-        <Badge variant="outline">{quiz.categoryName}</Badge>
-        <Button>Start Quiz</Button>
-      </CardFooter>
+  <Badge variant="outline">{quiz.categoryName}</Badge>
+  {/* Update this button */}
+  <Button asChild>
+      <Link to={`/quiz/${quiz.id}`}>Start Quiz</Link>
+  </Button>
+</CardFooter>
     </Card>
   );
 };

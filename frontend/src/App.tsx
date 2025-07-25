@@ -10,7 +10,7 @@ import { QuizCard } from './components/quiz/QuizCard';
 import { Skeleton } from './components/ui/skeleton';
 import { QuizFilterBar } from './components/quiz/QuizFilterBar';
 import type { QuizFilters } from './api/quizService';
-
+import QuizDetailPage from './pages/QuizDetailPage';
 function HomePage() {
   // 1. Create a state to hold the current filters
   const [filters, setFilters] = useState<QuizFilters>({});
@@ -72,12 +72,11 @@ function HomePage() {
 
 
 function App() {
-
   return (
-
     <Layout>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/quiz/:id" element={<QuizDetailPage />} /> 
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="*" element={<h2>404: Page Not Found</h2>} />

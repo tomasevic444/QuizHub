@@ -1,6 +1,6 @@
 // src/api/quizService.ts
 import axios from 'axios';
-import type { Quiz } from '@/interfaces/quiz.interfaces';
+import type { Quiz, QuizTakerView } from '@/interfaces/quiz.interfaces';
 
 const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/Quizzes`;
 
@@ -33,6 +33,15 @@ export const getCategories = async (): Promise<string[]> => {
         return response.data;
     } catch(error) {
         console.error("Failed to fetch categories:", error);
+        throw error;
+    }
+}
+export const getQuizForTaker = async (id: number): Promise<QuizTakerView> => {
+    try {
+        const response = await axios.get<QuizTakerView>(`${API_URL}/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Failed to fetch quiz ${id}:`, error);
         throw error;
     }
 }
