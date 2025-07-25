@@ -5,6 +5,7 @@ public record QuizDto(
     int Id,
     string Title,
     string Description,
-    string Difficulty, // We'll send the string name, not the number
+    string Difficulty, 
+    int NumberOfQuestions,
     string CategoryName
 );

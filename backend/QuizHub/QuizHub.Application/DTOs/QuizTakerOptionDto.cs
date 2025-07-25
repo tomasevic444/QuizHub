@@ -1,0 +1,1 @@
+﻿public record QuizTakerOptionDto(int Id, string Text);

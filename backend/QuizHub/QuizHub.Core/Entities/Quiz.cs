@@ -19,4 +19,6 @@ public class Quiz
     public int CategoryId { get; set; }
     public Category Category { get; set; } = null!; // Navigation property
 
+    public ICollection<Question> Questions { get; set; } = new List<Question>();
+
 }
