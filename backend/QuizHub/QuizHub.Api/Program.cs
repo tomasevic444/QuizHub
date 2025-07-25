@@ -3,6 +3,7 @@ using QuizHub.Application.Services;
 using QuizHub.Infrastructure.Data;
 using QuizHub.Infrastructure.Services;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -33,6 +34,13 @@ builder.Services.AddCors(options =>
 
 // --- Build the app ---
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    await DataSeeder.SeedAsync(context);
+}
 
 // --- Configure the HTTP request pipeline. ---
 if (app.Environment.IsDevelopment())
