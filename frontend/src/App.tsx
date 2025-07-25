@@ -4,16 +4,24 @@ import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import Layout from './components/layout/Layout'; 
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { getQuizzes } from './api/quizService';
 import { QuizCard } from './components/quiz/QuizCard';
 import { Skeleton } from './components/ui/skeleton';
-
+import { QuizFilterBar } from './components/quiz/QuizFilterBar';
+import type { QuizFilters } from './api/quizService';
 
 function HomePage() {
+  // 1. Create a state to hold the current filters
+  const [filters, setFilters] = useState<QuizFilters>({});
+
+  // 2. Pass the filters to useQuery. 
+  // The queryKey must include the filters so react-query refetches when they change.
   const { data: quizzes, isLoading, isError } = useQuery({
-    queryKey: ['quizzes'],
-    queryFn: getQuizzes,
+    queryKey: ['quizzes', filters],
+    queryFn: () => getQuizzes(filters),
   });
+
 
   const SkeletonGrid = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -37,14 +45,27 @@ function HomePage() {
     return <div className="text-red-500">Failed to load quizzes. Please try again later.</div>;
   }
 
-  return (
+   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold tracking-tight">Available Quizzes</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {quizzes?.map((quiz) => (
-          <QuizCard key={quiz.id} quiz={quiz} />
-        ))}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <h2 className="text-3xl font-bold tracking-tight">Available Quizzes</h2>
       </div>
+      
+      {/* 3. Render the filter bar and pass down the state and handler */}
+      <QuizFilterBar filters={filters} onFilterChange={setFilters} />
+
+      {isLoading && <SkeletonGrid />}
+      {isError && <div className="text-destructive">Failed to load quizzes. Please try again.</div>}
+      
+      {!isLoading && !isError && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {quizzes && quizzes.length > 0 ? (
+                  quizzes.map((quiz) => <QuizCard key={quiz.id} quiz={quiz} />)
+              ) : (
+                  <p className="col-span-full text-center text-muted-foreground">No quizzes found matching your criteria.</p>
+              )}
+          </div>
+      )}
     </div>
   );
 }
