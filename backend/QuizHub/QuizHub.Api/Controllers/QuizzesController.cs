@@ -1,9 +1,11 @@
 ﻿// QuizHub.Api/Controllers/QuizzesController.cs
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuizHub.Application.DTOs;
 using QuizHub.Core.Entities;
 using QuizHub.Infrastructure.Data;
+using System.Security.Claims;
 
 namespace QuizHub.Api.Controllers;
 
@@ -12,10 +14,12 @@ namespace QuizHub.Api.Controllers;
 public class QuizzesController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IQuizService _quizService;
 
-    public QuizzesController(ApplicationDbContext context)
+    public QuizzesController(ApplicationDbContext context, IQuizService quizService)
     {
         _context = context;
+        _quizService = quizService;
     }
 
     // GET: api/Quizzes
@@ -107,5 +111,26 @@ public class QuizzesController : ControllerBase
         );
 
         return Ok(quizDto);
+    }
+    [HttpPost("{id}/submit")]
+    [Authorize] // IMPORTANT: Only logged-in users can submit quizzes.
+    public async Task<ActionResult<QuizResultDto>> SubmitQuiz(int id, QuizSubmissionDto submission)
+    {
+        // Get user ID from the JWT token.
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var result = await _quizService.SubmitQuizAsync(id, userId, submission);
+            return Ok(result);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new { message = e.Message });
+        }
     }
 }
