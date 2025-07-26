@@ -15,12 +15,14 @@ public class ApplicationDbContext : DbContext
     public DbSet<Category> Categories { get; set; }
     public DbSet<Question> Questions { get; set; }
     public DbSet<Option> Options { get; set; }
+    public DbSet<QuizAttempt> QuizAttempts { get; set; } 
+    public DbSet<UserAnswer> UserAnswers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure unique constraints to prevent duplicate usernames and emails
+        // Configure unique constraints for the User table
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Username)
             .IsUnique();
@@ -28,8 +30,18 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
             .IsUnique();
+
+        // Configure unique constraint for the Category table
         modelBuilder.Entity<Category>()
             .HasIndex(c => c.Name)
             .IsUnique();
+
+        // --- THIS IS THE FIX for the cascade path error ---
+        // Manually configure the relationship between Question and UserAnswer
+        modelBuilder.Entity<UserAnswer>()
+            .HasOne(ua => ua.Question) // A UserAnswer has one Question
+            .WithMany() // A Question can be related to many UserAnswers
+            .HasForeignKey(ua => ua.QuestionId) // The foreign key is QuestionId
+            .OnDelete(DeleteBehavior.Restrict); // Tell SQL Server NOT to cascade delete.
     }
 }
