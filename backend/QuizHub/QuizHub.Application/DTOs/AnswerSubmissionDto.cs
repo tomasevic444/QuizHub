@@ -1,0 +1,1 @@
+﻿public record AnswerSubmissionDto(int QuestionId, List<int>? SelectedOptionIds, string? SubmittedText);

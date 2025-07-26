@@ -1,0 +1,1 @@
+﻿public record QuizSubmissionDto(int TimeTakenInSeconds, List<AnswerSubmissionDto> Answers);
