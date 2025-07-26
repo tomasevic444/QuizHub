@@ -11,6 +11,8 @@ import { Skeleton } from './components/ui/skeleton';
 import { QuizFilterBar } from './components/quiz/QuizFilterBar';
 import type { QuizFilters } from './api/quizService';
 import QuizDetailPage from './pages/QuizDetailPage';
+import QuizSessionPage from './pages/QuizSessionPage';
+
 function HomePage() {
   // 1. Create a state to hold the current filters
   const [filters, setFilters] = useState<QuizFilters>({});
@@ -77,6 +79,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/quiz/:id" element={<QuizDetailPage />} /> 
+        <Route path="/quiz/:id/session" element={<QuizSessionPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="*" element={<h2>404: Page Not Found</h2>} />
