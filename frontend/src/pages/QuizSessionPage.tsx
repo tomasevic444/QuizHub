@@ -80,11 +80,28 @@ const QuizSessionPage = () => {
         setUserAnswers(newAnswers);
     };
 
-    const handleSubmitQuiz = () => {
-        // Implement the API call to submit the quiz here 
-        console.log("Submitting quiz with answers:", Object.fromEntries(userAnswers));
-        // navigate(`/quiz/${quizId}/results`); // Navigate to results page after submission
-    }
+    const handleSubmitQuiz = async () => {
+    if (!quiz) return;
+
+    // Format the answers into the DTO structure
+    const answersPayload = Array.from(userAnswers.entries()).map(([questionId, answer]) => {
+        const question = quiz.questions.find(q => q.id === questionId);
+        if (question?.type === 'FillInTheBlank') {
+            return { questionId, submittedText: answer };
+        }
+        return { questionId, selectedOptionIds: Array.isArray(answer) ? answer : [answer] };
+    });
+
+    const submissionPayload = {
+        timeTakenInSeconds: quiz.timeLimitInSeconds - timeLeft,
+        answers: answersPayload,
+    };
+    
+
+    
+    console.log("Submitting:", submissionPayload);
+    navigate(`/quiz/results/placeholder`); 
+};
 
     // 5. RENDER LOGIC
     if (isLoading || !quiz) {

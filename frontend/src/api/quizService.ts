@@ -1,5 +1,5 @@
 // src/api/quizService.ts
-import axios from 'axios';
+import axios from './axiosConfig'
 import type { Quiz, QuizTakerView } from '@/interfaces/quiz.interfaces';
 
 const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/Quizzes`;

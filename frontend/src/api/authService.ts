@@ -1,5 +1,5 @@
 // src/api/authService.ts
-import axios from 'axios';
+import axios from './axiosConfig'
 import { type UserLogin, type UserRegister, type AuthResponse } from '../interfaces/auth.interfaces';
 
 // Get the base URL from our environment variables
