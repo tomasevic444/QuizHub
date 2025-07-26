@@ -26,3 +26,29 @@ export interface QuizTakerView {
   timeLimitInSeconds: number;
   questions: QuizTakerQuestion[];
 }
+
+export interface QuestionResult {
+  questionText: string;
+  userAnswers: string[];
+  correctAnswers: string[];
+  isCorrect: boolean;
+}
+
+export interface QuizResult {
+  score: number;
+  totalPossibleScore: number;
+  correctCount: number;
+  totalQuestions: number;
+  results: QuestionResult[];
+}
+
+export interface AnswerSubmission {
+  questionId: number;
+  selectedOptionIds?: number[];
+  submittedText?: string;
+}
+
+export interface QuizSubmission {
+  timeTakenInSeconds: number;
+  answers: AnswerSubmission[];
+}

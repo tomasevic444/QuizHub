@@ -1,14 +1,16 @@
 // src/pages/QuizSessionPage.tsx
-import { useState, useEffect} from 'react'; 
+
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { getQuizForTaker } from '@/api/quizService';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { getQuizForTaker, submitQuiz } from '@/api/quizService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Clock } from 'lucide-react'; 
+import { Clock } from 'lucide-react';
 import { QuestionDisplay } from '@/components/quiz/QuestionDisplay';
+import type { QuizSubmission } from '@/interfaces/quiz.interfaces';
 
 
 const QuizSessionPage = () => {
@@ -33,34 +35,39 @@ const QuizSessionPage = () => {
         gcTime: 0,
     });
 
+    // 3. EFFECT HOOKS
     useEffect(() => {
         if (quiz) {
             // When the 'quiz' data arrives, set the initial time left.
             setTimeLeft(quiz.timeLimitInSeconds);
         }
     }, [quiz]);
-    // 3. TIMER LOGIC
+
     useEffect(() => {
-        // If time is up or quiz isn't loaded, do nothing
         if (timeLeft <= 0 || !quiz) return;
-
-        const timerId = setInterval(() => {
-            setTimeLeft(prevTime => prevTime - 1);
-        }, 1000);
-
-        // Cleanup function to clear the interval when the component unmounts
+        const timerId = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
         return () => clearInterval(timerId);
     }, [timeLeft, quiz]);
 
-    // Effect to handle automatic submission when time runs out
     useEffect(() => {
-        if (timeLeft === 0 && quiz) {
-            // handleSubmitQuiz(); // will implement this later
+        if (timeLeft === 1) { // Submit a second before it hits 0 to avoid race conditions
+            handleSubmitQuiz();
         }
-    }, [timeLeft, quiz]);
+    }, [timeLeft]);
 
+    // 4. API MUTATION FOR SUBMISSION
+    const mutation = useMutation({
+        mutationFn: (submission: QuizSubmission) => submitQuiz(quizId, submission),
+        onSuccess: (data) => {
+            navigate(`/quiz/results/${quizId}`, { state: { result: data } });
+        },
+        onError: (error) => {
+            console.error("Submission failed", error);
+            alert("There was an error submitting your quiz. Please try again.");
+        }
+    });
 
-    // 4. HANDLER FUNCTIONS
+    // 5. HANDLER FUNCTIONS
     const handleNextQuestion = () => {
         if (quiz && currentQuestionIndex < quiz.questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
@@ -73,75 +80,70 @@ const QuizSessionPage = () => {
         }
     };
 
-    // This function will be passed to the QuestionDisplay component
     const handleAnswerChange = (questionId: number, answer: any) => {
         const newAnswers = new Map(userAnswers);
         newAnswers.set(questionId, answer);
         setUserAnswers(newAnswers);
     };
 
-    const handleSubmitQuiz = async () => {
-    if (!quiz) return;
+    const handleSubmitQuiz = () => {
+        if (!quiz || mutation.isPending) return;
 
-    // Format the answers into the DTO structure
-    const answersPayload = Array.from(userAnswers.entries()).map(([questionId, answer]) => {
-        const question = quiz.questions.find(q => q.id === questionId);
-        if (question?.type === 'FillInTheBlank') {
-            return { questionId, submittedText: answer };
-        }
-        return { questionId, selectedOptionIds: Array.isArray(answer) ? answer : [answer] };
-    });
+        const answersPayload = Array.from(userAnswers.entries()).map(([questionId, answer]) => {
+            const question = quiz.questions.find(q => q.id === questionId);
+            if (question?.type === 'FillInTheBlank') {
+                return { questionId, submittedText: answer || "" };
+            }
+            if (!answer) return { questionId, selectedOptionIds: [] };
+            return { questionId, selectedOptionIds: Array.isArray(answer) ? answer : [answer] };
+        });
 
-    const submissionPayload = {
-        timeTakenInSeconds: quiz.timeLimitInSeconds - timeLeft,
-        answers: answersPayload,
+        const submissionPayload: QuizSubmission = {
+            timeTakenInSeconds: quiz.timeLimitInSeconds - timeLeft,
+            answers: answersPayload,
+        };
+        
+        mutation.mutate(submissionPayload);
     };
-    
 
-    
-    console.log("Submitting:", submissionPayload);
-    navigate(`/quiz/results/placeholder`); 
-};
-
-    // 5. RENDER LOGIC
+    // 6. RENDER LOGIC
     if (isLoading || !quiz) {
-    return (
-        <div className="max-w-4xl mx-auto space-y-6">
-            {/* Show a more detailed skeleton to match the layout */}
-            <div className="flex justify-between items-center">
-                <Skeleton className="h-8 w-1/2" />
-                <Skeleton className="h-8 w-24" />
+        return (
+            <div className="max-w-4xl mx-auto space-y-6">
+                <div className="flex justify-between items-center">
+                    <Skeleton className="h-8 w-1/2" />
+                    <Skeleton className="h-8 w-24" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="w-full h-[300px]" />
+                <div className="flex justify-between">
+                    <Skeleton className="h-10 w-24" />
+                    <Skeleton className="h-10 w-24" />
+                </div>
             </div>
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="w-full h-[300px]" />
-            <div className="flex justify-between">
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-24" />
-            </div>
-        </div>
-    );
-}
+        );
+    }
 
 // If there's an error after loading, show an error message.
-if (isError) {
-    return <div>Error loading quiz session.</div>;
-}
-    
+    if (isError) {
+        return <div>Error loading quiz session.</div>;
+    }
+
     const currentQuestion = quiz.questions[currentQuestionIndex];
-const progressPercentage = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
+    const progressPercentage = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
 
 // This check is a safeguard for an unlikely edge case (e.g., a quiz with no questions).
-if (!currentQuestion) {
-    return <div>Quiz has no questions or an error occurred.</div>
-}
+    if (!currentQuestion) {
+        return <div>Quiz has no questions or an error occurred.</div>
+    }
 
-// Format time for display
-const minutes = Math.floor(timeLeft / 60);
-const seconds = timeLeft % 60;
+    // Format time for display
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
-            {/* Header: Title and Timer */}
+                        {/* Header: Title and Timer */}
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">{quiz.title}</h1>
                 <div className={`flex items-center gap-2 font-semibold p-2 rounded-md ${timeLeft < 60 ? 'text-destructive animate-pulse' : ''}`}>
@@ -160,18 +162,18 @@ const seconds = timeLeft % 60;
 
             {/* Question Display Area */}
             <Card>
-    <CardHeader>
-        <CardTitle>{currentQuestion.text}</CardTitle>
-    </CardHeader>
-    <CardContent>
-        
-        <QuestionDisplay
-            question={currentQuestion}
-            userAnswer={userAnswers.get(currentQuestion.id)}
-            onAnswerChange={handleAnswerChange}
-        />
-    </CardContent>
-</Card>
+                <CardHeader>
+                    <CardTitle>{currentQuestion.text}</CardTitle>
+                </CardHeader>
+                <CardContent>
+
+                    <QuestionDisplay
+                        question={currentQuestion}
+                        userAnswer={userAnswers.get(currentQuestion.id)}
+                        onAnswerChange={handleAnswerChange}
+                    />
+                </CardContent>
+            </Card>
 
             {/* Navigation Buttons */}
             <div className="flex justify-between">
@@ -179,8 +181,8 @@ const seconds = timeLeft % 60;
                     Previous
                 </Button>
                 {currentQuestionIndex === quiz.questions.length - 1 ? (
-                    <Button variant="destructive" onClick={handleSubmitQuiz}>
-                        Submit Quiz
+                    <Button variant="destructive" onClick={handleSubmitQuiz} disabled={mutation.isPending}>
+                        {mutation.isPending ? 'Submitting...' : 'Submit Quiz'}
                     </Button>
                 ) : (
                     <Button onClick={handleNextQuestion}>

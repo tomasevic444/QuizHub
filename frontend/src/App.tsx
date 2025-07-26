@@ -12,6 +12,7 @@ import { QuizFilterBar } from './components/quiz/QuizFilterBar';
 import type { QuizFilters } from './api/quizService';
 import QuizDetailPage from './pages/QuizDetailPage';
 import QuizSessionPage from './pages/QuizSessionPage';
+import QuizResultsPage from './pages/QuizResultsPage';
 
 function HomePage() {
   // 1. Create a state to hold the current filters
@@ -83,6 +84,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="*" element={<h2>404: Page Not Found</h2>} />
+        <Route path="/quiz/results/:attemptId" element={<QuizResultsPage />} />
       </Routes>
     </Layout>
   );

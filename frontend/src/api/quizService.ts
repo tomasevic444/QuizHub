@@ -1,6 +1,6 @@
 // src/api/quizService.ts
 import axios from './axiosConfig'
-import type { Quiz, QuizTakerView } from '@/interfaces/quiz.interfaces';
+import type { Quiz , QuizTakerView, QuizSubmission, QuizResult } from '@/interfaces/quiz.interfaces';
 
 const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/Quizzes`;
 
@@ -45,3 +45,13 @@ export const getQuizForTaker = async (id: number): Promise<QuizTakerView> => {
         throw error;
     }
 }
+
+export const submitQuiz = async (quizId: number, submission: QuizSubmission): Promise<QuizResult> => {
+    try {
+        const response = await axios.post<QuizResult>(`${API_URL}/${quizId}/submit`, submission);
+        return response.data;
+    } catch (error) {
+        console.error(`Failed to submit quiz ${quizId}:`, error);
+        throw error;
+    }
+};
