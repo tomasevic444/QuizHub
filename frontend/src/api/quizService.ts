@@ -1,6 +1,7 @@
 // src/api/quizService.ts
 import axios from './axiosConfig'
 import type { Quiz , QuizTakerView, QuizSubmission, QuizResult } from '@/interfaces/quiz.interfaces';
+import type { LeaderboardEntry } from '@/interfaces/leaderboard.interfaces';
 
 const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/Quizzes`;
 
@@ -36,6 +37,7 @@ export const getCategories = async (): Promise<string[]> => {
         throw error;
     }
 }
+
 export const getQuizForTaker = async (id: number): Promise<QuizTakerView> => {
     try {
         const response = await axios.get<QuizTakerView>(`${API_URL}/${id}`);
@@ -55,3 +57,7 @@ export const submitQuiz = async (quizId: number, submission: QuizSubmission): Pr
         throw error;
     }
 };
+export const getLeaderboard = async (quizId: number): Promise<LeaderboardEntry[]> => {
+    const response = await axios.get<LeaderboardEntry[]>(`${API_URL}/${quizId}/leaderboard`);
+    return response.data;
+}
