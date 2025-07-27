@@ -19,13 +19,23 @@ const RegisterPage = () => {
     e.preventDefault();
     setError(null);
     try {
-      await register({ username, email, password });
-      alert('Registration successful! Please log in.');
-      navigate('/login');
+        await register({ username, email, password });
+        alert('Registration successful! Please log in.');
+        navigate('/login');
     } catch (err: any) {
-      setError(err.response?.data || 'Registration failed. User might already exist.');
+        const errorData = err.response?.data;
+
+        if (errorData && errorData.errors) {
+            const firstErrorField = Object.keys(errorData.errors)[0];
+            const firstErrorMessage = errorData.errors[firstErrorField][0];
+            setError(firstErrorMessage);
+        } else if (errorData && errorData.message) {
+            setError(errorData.message);
+        } else {
+            setError('An unexpected error occurred. Please try again.');
+        }
     }
-  };
+};
 
   return (
     <div className="flex items-center justify-center py-12">
