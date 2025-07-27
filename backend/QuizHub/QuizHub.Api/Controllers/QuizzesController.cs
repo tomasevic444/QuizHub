@@ -133,4 +133,52 @@ public class QuizzesController : ControllerBase
             return BadRequest(new { message = e.Message });
         }
     }
+    [HttpGet("{id}/leaderboard")]
+    public async Task<ActionResult<IEnumerable<LeaderboardEntryDto>>> GetLeaderboard(int id, [FromQuery] int topN = 10)
+    {
+        // --- STEP 1: Calculate Total Possible Score for the Quiz ---
+        // We do this once at the beginning for efficiency.
+        var totalPossibleScore = await _context.Questions
+            .Where(q => q.QuizId == id)
+            .SumAsync(q => q.Points);
+
+        // If the quiz has no questions or points, prevent division by zero.
+        if (totalPossibleScore == 0)
+        {
+            // Return an empty leaderboard if the quiz is not scorable.
+            return Ok(Enumerable.Empty<LeaderboardEntryDto>());
+        }
+
+        // --- STEP 2: Fetch all relevant attempts from the database ---
+        var allAttemptsForQuiz = await _context.QuizAttempts
+            .AsNoTracking()
+            .Where(qa => qa.QuizId == id && qa.User != null)
+            .Include(qa => qa.User)
+            .ToListAsync();
+
+        // --- STEP 3: Process the data in memory using LINQ to Objects ---
+        var topScores = allAttemptsForQuiz
+            .GroupBy(qa => qa.UserId)
+            .Select(userGroup => userGroup
+                .OrderByDescending(qa => qa.Score)
+                .ThenBy(qa => qa.TimeTakenInSeconds)
+                .First())
+            .OrderByDescending(qa => qa.Score)
+            .ThenBy(qa => qa.TimeTakenInSeconds)
+            .Take(topN)
+            .ToList();
+
+        // --- STEP 4: Map the final list to our DTO, now including the percentage ---
+        var leaderboard = topScores.Select((attempt, index) => new LeaderboardEntryDto(
+            index + 1,
+            attempt.User.Username,
+            attempt.Score,
+            // Calculate and add the percentage here
+            Math.Round((double)attempt.Score / totalPossibleScore * 100, 2),
+            attempt.TimeTakenInSeconds,
+            attempt.AttemptedAt
+        ));
+
+        return Ok(leaderboard);
+    }
 }
