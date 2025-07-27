@@ -25,17 +25,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             QuizHub
           </Link>
           <nav className="flex items-center gap-4">
+            <Link to="/leaderboard" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+              Leaderboard
+            </Link>
             {user ? (
-  <>
-    <Link to="/my-results" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-      My Results
-    </Link>
-    <span className="text-sm font-medium">
-      Welcome, {user.username}!
-    </span>
-    <Button variant="ghost" onClick={handleLogout}>Logout</Button>
-  </>
-) : (
+              <>
+                <Link to="/my-results" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+                  My Results
+                </Link>
+                <span className="text-sm font-medium">
+                  Welcome, {user.username}!
+                </span>
+                <Button variant="ghost" onClick={handleLogout}>Logout</Button>
+              </>
+            ) : (
               <>
                 <Button asChild variant="ghost">
                   <Link to="/login">Login</Link>
