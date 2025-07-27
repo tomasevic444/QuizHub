@@ -13,6 +13,8 @@ import type { QuizFilters } from './api/quizService';
 import QuizDetailPage from './pages/QuizDetailPage';
 import QuizSessionPage from './pages/QuizSessionPage';
 import QuizResultsPage from './pages/QuizResultsPage';
+import MyResultsPage from './pages/MyResultsPage';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 function HomePage() {
   // 1. Create a state to hold the current filters
@@ -78,6 +80,9 @@ function App() {
   return (
     <Layout>
       <Routes>
+        <Route element={<ProtectedRoute />}>
+            <Route path="/my-results" element={<MyResultsPage />} />
+        </Route>
         <Route path="/" element={<HomePage />} />
         <Route path="/quiz/:id" element={<QuizDetailPage />} /> 
         <Route path="/quiz/:id/session" element={<QuizSessionPage />} />
