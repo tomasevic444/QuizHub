@@ -14,6 +14,20 @@ public static class DataSeeder
             return;
         }
 
+        if (!await context.Users.AnyAsync(u => u.Role == "Admin"))
+        {
+            var adminUser = new User
+            {
+                Username = "admin",
+                Email = "admin@quizhub.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                Role = "Admin"
+            };
+            await context.Users.AddAsync(adminUser);
+            await context.SaveChangesAsync();
+        }
+
+
         var categories = new List<Category>
         {
             new Category { Name = "Programming" },
