@@ -13,6 +13,7 @@ export interface UserLogin {
 // successful login
 export interface AuthResponse {
   username: string;
-  email: string;
+  email: string; 
+  role: string;
   token: string;
 }
