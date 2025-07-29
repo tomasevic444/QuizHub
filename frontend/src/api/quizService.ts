@@ -1,6 +1,6 @@
 // src/api/quizService.ts
 import axios from './axiosConfig'
-import type { Quiz , QuizTakerView, QuizSubmission, QuizResult } from '@/interfaces/quiz.interfaces';
+import type { Quiz , Category, QuizTakerView, QuizSubmission, QuizResult } from '@/interfaces/quiz.interfaces';
 import type { LeaderboardEntry } from '@/interfaces/leaderboard.interfaces';
 
 const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/Quizzes`;
@@ -28,10 +28,11 @@ export const getQuizzes = async (filters: QuizFilters): Promise<Quiz[]> => {
   }
 };
 
-export const getCategories = async (): Promise<string[]> => {
-    try {
-        const response = await axios.get<string[]>(`${API_URL}/categories`);
-        return response.data;
+
+export const getCategories = async (): Promise<Category[]> => {
+  try {
+    const response = await axios.get<Category[]>(`${API_URL}/categories`);
+    return response.data;
     } catch(error) {
         console.error("Failed to fetch categories:", error);
         throw error;

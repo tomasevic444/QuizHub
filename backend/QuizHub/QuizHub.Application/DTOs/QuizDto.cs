@@ -7,5 +7,8 @@ public record QuizDto(
     string Description,
     string Difficulty, 
     int NumberOfQuestions,
-    string CategoryName
+    string CategoryName,
+    int TimeLimitInSeconds,
+    int CategoryId
+
 );

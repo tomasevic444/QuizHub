@@ -65,7 +65,9 @@ public class QuizzesController : ControllerBase
                 q.Description,
                 q.Difficulty.ToString(),
                 q.Questions.Count(), // This will now be translated to SQL correctly
-                q.Category.Name
+                q.Category.Name,
+                q.TimeLimitInSeconds,
+            q.CategoryId
             ))
             .ToListAsync();
 
@@ -73,11 +75,11 @@ public class QuizzesController : ControllerBase
     }
     // GET: api/Quizzes/categories
     [HttpGet("categories")]
-    public async Task<ActionResult<IEnumerable<string>>> GetCategories()
+    public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
     {
         var categories = await _context.Categories
-            .Select(c => c.Name)
-            .OrderBy(name => name)
+            .OrderBy(c => c.Name)
+            .Select(c => new CategoryDto(c.Id, c.Name))
             .ToListAsync();
 
         return Ok(categories);

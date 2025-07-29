@@ -1,4 +1,6 @@
 // src/interfaces/quiz.interfaces.ts
+
+
 export interface Quiz {
   id: number;
   title: string;
@@ -6,7 +8,15 @@ export interface Quiz {
   difficulty: 'Easy' | 'Medium' | 'Hard';
   numberOfQuestions: number; 
   categoryName: string;
+  categoryId: number; 
+  timeLimitInSeconds: number;
 }
+
+export interface Category {
+  id: number;
+  name: string;
+}
+
 export interface QuizTakerOption {
   id: number;
   text: string;
