@@ -122,4 +122,74 @@ public class AdminController : ControllerBase
 
         return NoContent();
     }
+    // GET: api/Admin/quizzes/{quizId}/questions
+    [HttpGet("quizzes/{quizId}/questions")]
+    public async Task<ActionResult<IEnumerable<Question>>> GetQuestionsForQuiz(int quizId)
+    {
+        var questions = await _context.Questions
+            .Where(q => q.QuizId == quizId)
+            .Include(q => q.Options)
+            .ToListAsync();
+
+        return Ok(questions);
+    }
+
+    // POST: api/Admin/quizzes/{quizId}/questions
+    [HttpPost("quizzes/{quizId}/questions")]
+    public async Task<ActionResult<Question>> CreateQuestion(int quizId, AdminQuestionUpsertDto questionDto)
+    {
+        var quiz = await _context.Quizzes.FindAsync(quizId);
+        if (quiz == null) return NotFound("Quiz not found.");
+
+        var newQuestion = new Question
+        {
+            QuizId = quizId,
+            Text = questionDto.Text,
+            Type = questionDto.Type,
+            Points = questionDto.Points,
+            Options = questionDto.Options.Select(o => new Option { Text = o.Text, IsCorrect = o.IsCorrect }).ToList()
+        };
+
+        _context.Questions.Add(newQuestion);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetQuestionsForQuiz), new { quizId = newQuestion.QuizId }, newQuestion);
+    }
+
+    // PUT: api/Admin/questions/{questionId} (Note the different route)
+    [HttpPut("questions/{questionId}")]
+    public async Task<IActionResult> UpdateQuestion(int questionId, AdminQuestionUpsertDto questionDto)
+    {
+        var questionToUpdate = await _context.Questions
+            .Include(q => q.Options)
+            .FirstOrDefaultAsync(q => q.Id == questionId);
+
+        if (questionToUpdate == null) return NotFound();
+
+        // Update question properties
+        questionToUpdate.Text = questionDto.Text;
+        questionToUpdate.Type = questionDto.Type;
+        questionToUpdate.Points = questionDto.Points;
+
+        _context.Options.RemoveRange(questionToUpdate.Options);
+        questionToUpdate.Options = questionDto.Options
+            .Select(o => new Option { Text = o.Text, IsCorrect = o.IsCorrect })
+            .ToList();
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    // DELETE: api/Admin/questions/{questionId}
+    [HttpDelete("questions/{questionId}")]
+    public async Task<IActionResult> DeleteQuestion(int questionId)
+    {
+        var questionToDelete = await _context.Questions.FindAsync(questionId);
+        if (questionToDelete == null) return NotFound();
+
+        _context.Questions.Remove(questionToDelete);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
