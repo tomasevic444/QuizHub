@@ -1,0 +1,100 @@
+// src/pages/admin/AdminQuizListPage.tsx
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getQuizzesForAdmin, deleteQuiz } from '@/api/adminService';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { QuizFormDialog } from '@/components/admin/QuizFormDialog';
+import { useState } from 'react';
+import { type Quiz } from '@/interfaces/quiz.interfaces'; 
+
+const AdminQuizListPage = () => {
+    const queryClient = useQueryClient();
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null); // Use 'any' for now
+
+    const { data: quizzes, isLoading } = useQuery({
+        queryKey: ['adminQuizzes'],
+        queryFn: getQuizzesForAdmin,
+    });
+    
+    const deleteMutation = useMutation({
+        mutationFn: deleteQuiz,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['adminQuizzes'] });
+        },
+    });
+
+    const handleEdit = (quiz: Quiz) => {
+        setEditingQuiz(quiz);
+        setIsFormOpen(true);
+    };
+
+    const handleAddNew = () => {
+        setEditingQuiz(null);
+        setIsFormOpen(true);
+    };
+    const formatTime = (seconds: number) => {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs > 0 ? `${secs}s` : ''}`;
+};
+    
+    return (
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h2 className="text-3xl font-bold tracking-tight">Manage Quizzes</h2>
+                <Button onClick={handleAddNew}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add New Quiz
+                </Button>
+            </div>
+
+             <QuizFormDialog 
+                isOpen={isFormOpen}
+                setIsOpen={setIsFormOpen}
+                quiz={editingQuiz}
+            /> 
+            
+            <div className="border rounded-lg">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Title</TableHead>
+                            <TableHead>Category</TableHead>
+                            <TableHead>Difficulty</TableHead>
+                            <TableHead># Questions</TableHead>
+                            <TableHead>Time Limit</TableHead> 
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? (
+                            <TableRow><TableCell colSpan={6}>Loading...</TableCell></TableRow>
+                        ) : (
+                            quizzes?.map((quiz) => (
+                                <TableRow key={quiz.id}>
+                                    <TableCell className="font-medium">{quiz.title}</TableCell>
+                                    <TableCell>{quiz.categoryName}</TableCell>
+                                    <TableCell>{quiz.difficulty}</TableCell>
+                                    <TableCell>{quiz.numberOfQuestions}</TableCell>
+                                    <TableCell>{formatTime(quiz.timeLimitInSeconds)}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(quiz)}>
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(quiz.id)}>
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
+    );
+};
+
+export default AdminQuizListPage;

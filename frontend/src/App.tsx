@@ -18,6 +18,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import LeaderboardPage from './pages/LeaderboardPage';
 import { AdminRoute } from './components/AdminRoute';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminQuizListPage from './pages/admin/AdminQuizListPage';
 
 function HomePage() {
   // 1. Create a state to hold the current filters
@@ -89,8 +90,9 @@ function App() {
         {/* Protected Admin Routes */}
         <Route path="/admin" element={<AdminRoute />}>
             <Route index element={<AdminDashboardPage />} />
+            <Route path="quizzes" element={<AdminQuizListPage />} />
         </Route>
-         <Route path="/leaderboard" element={<LeaderboardPage />} />
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/quiz/:id" element={<QuizDetailPage />} /> 
         <Route path="/quiz/:id/session" element={<QuizSessionPage />} />
