@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using QuizHub.Application.Services;
 using QuizHub.Infrastructure.Data;
 using QuizHub.Infrastructure.Services;
+using System.Text.Json.Serialization;
 using System.Text;
 
 
@@ -19,7 +20,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IQuizService, QuizService>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
