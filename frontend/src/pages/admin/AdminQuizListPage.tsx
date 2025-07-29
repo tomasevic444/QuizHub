@@ -11,7 +11,8 @@ import { type Quiz } from '@/interfaces/quiz.interfaces';
 const AdminQuizListPage = () => {
     const queryClient = useQueryClient();
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null); // Use 'any' for now
+    const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
+     const [formKey, setFormKey] = useState(0);
 
     const { data: quizzes, isLoading } = useQuery({
         queryKey: ['adminQuizzes'],
@@ -27,11 +28,13 @@ const AdminQuizListPage = () => {
 
     const handleEdit = (quiz: Quiz) => {
         setEditingQuiz(quiz);
+        setFormKey(prevKey => prevKey + 1);
         setIsFormOpen(true);
     };
 
     const handleAddNew = () => {
         setEditingQuiz(null);
+        setFormKey(prevKey => prevKey + 1); 
         setIsFormOpen(true);
     };
     const formatTime = (seconds: number) => {
@@ -40,6 +43,7 @@ const AdminQuizListPage = () => {
     const secs = seconds % 60;
     return `${mins}m ${secs > 0 ? `${secs}s` : ''}`;
 };
+
     
     return (
         <div className="space-y-6">
@@ -51,8 +55,9 @@ const AdminQuizListPage = () => {
             </div>
 
              <QuizFormDialog 
+             key={formKey}
                 isOpen={isFormOpen}
-                setIsOpen={setIsFormOpen}
+                setIsOpen={setIsFormOpen} 
                 quiz={editingQuiz}
             /> 
             
