@@ -3,22 +3,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getQuizzesForAdmin, deleteQuiz } from '@/api/adminService';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, ListChecks } from 'lucide-react';
 import { QuizFormDialog } from '@/components/admin/QuizFormDialog';
 import { useState } from 'react';
-import { type Quiz } from '@/interfaces/quiz.interfaces'; 
+import { type Quiz } from '@/interfaces/quiz.interfaces';
+import { Link } from 'react-router-dom'; // Import Link
 
 const AdminQuizListPage = () => {
     const queryClient = useQueryClient();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
-     const [formKey, setFormKey] = useState(0);
+    const [formKey, setFormKey] = useState(0);
 
     const { data: quizzes, isLoading } = useQuery({
         queryKey: ['adminQuizzes'],
         queryFn: getQuizzesForAdmin,
     });
-    
+
     const deleteMutation = useMutation({
         mutationFn: deleteQuiz,
         onSuccess: () => {
@@ -34,17 +35,17 @@ const AdminQuizListPage = () => {
 
     const handleAddNew = () => {
         setEditingQuiz(null);
-        setFormKey(prevKey => prevKey + 1); 
+        setFormKey(prevKey => prevKey + 1);
         setIsFormOpen(true);
     };
     const formatTime = (seconds: number) => {
-    if (seconds < 60) return `${seconds}s`;
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}m ${secs > 0 ? `${secs}s` : ''}`;
-};
+        if (seconds < 60) return `${seconds}s`;
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}m ${secs > 0 ? `${secs}s` : ''}`;
+    };
 
-    
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -54,13 +55,13 @@ const AdminQuizListPage = () => {
                 </Button>
             </div>
 
-             <QuizFormDialog 
-             key={formKey}
+            <QuizFormDialog
+                key={formKey}
                 isOpen={isFormOpen}
-                setIsOpen={setIsFormOpen} 
+                setIsOpen={setIsFormOpen}
                 quiz={editingQuiz}
-            /> 
-            
+            />
+
             <div className="border rounded-lg">
                 <Table>
                     <TableHeader>
@@ -69,7 +70,7 @@ const AdminQuizListPage = () => {
                             <TableHead>Category</TableHead>
                             <TableHead>Difficulty</TableHead>
                             <TableHead># Questions</TableHead>
-                            <TableHead>Time Limit</TableHead> 
+                            <TableHead>Time Limit</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -85,6 +86,11 @@ const AdminQuizListPage = () => {
                                     <TableCell>{quiz.numberOfQuestions}</TableCell>
                                     <TableCell>{formatTime(quiz.timeLimitInSeconds)}</TableCell>
                                     <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon" asChild>
+                                            <Link to={`/admin/quizzes/${quiz.id}/questions`}>
+                                                <ListChecks className="h-4 w-4" />
+                                            </Link>
+                                        </Button>
                                         <Button variant="ghost" size="icon" onClick={() => handleEdit(quiz)}>
                                             <Edit className="h-4 w-4" />
                                         </Button>
