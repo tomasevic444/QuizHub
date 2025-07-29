@@ -1,6 +1,7 @@
 // src/api/adminService.ts
 import axios from './axiosConfig';
 import type { Quiz } from '@/interfaces/quiz.interfaces';
+import type { Question } from '@/interfaces/question.interfaces';
 
 export interface AdminQuizUpsert {
   title: string;
@@ -29,4 +30,31 @@ export const updateQuiz = async (id: number, quiz: AdminQuizUpsert): Promise<voi
 
 export const deleteQuiz = async (id: number): Promise<void> => {
   await axios.delete(`${API_URL}/quizzes/${id}`);
+};
+
+export interface AdminOptionUpsert { text: string; isCorrect: boolean; }
+export interface AdminQuestionUpsert {
+    text: string;
+    type: Question['type'];
+    points: number;
+    options: AdminOptionUpsert[];
+}
+
+// --- Question Functions ---
+export const getQuestionsForQuiz = async (quizId: number): Promise<Question[]> => {
+    const response = await axios.get<Question[]>(`${API_URL}/quizzes/${quizId}/questions`);
+    return response.data;
+};
+
+export const createQuestion = async (quizId: number, question: AdminQuestionUpsert): Promise<Question> => {
+    const response = await axios.post<Question>(`${API_URL}/quizzes/${quizId}/questions`, question);
+    return response.data;
+};
+
+export const updateQuestion = async (questionId: number, question: AdminQuestionUpsert): Promise<void> => {
+    await axios.put(`${API_URL}/questions/${questionId}`, question);
+};
+
+export const deleteQuestion = async (questionId: number): Promise<void> => {
+    await axios.delete(`${API_URL}/questions/${questionId}`);
 };
