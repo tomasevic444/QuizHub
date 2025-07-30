@@ -192,4 +192,72 @@ public class AdminController : ControllerBase
 
         return NoContent();
     }
+    // POST: api/Admin/categories
+    [HttpPost("categories")]
+    public async Task<ActionResult<Category>> CreateCategory([FromBody] string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return BadRequest(new { message = "Category name cannot be empty." });
+        }
+
+        var existingCategory = await _context.Categories.FirstOrDefaultAsync(c => c.Name == name);
+        if (existingCategory != null)
+        {
+            return Conflict(new { message = "A category with this name already exists." });
+        }
+
+        var newCategory = new Category { Name = name };
+        _context.Categories.Add(newCategory);
+        await _context.SaveChangesAsync();
+
+        return Ok(newCategory);
+    }
+
+    // PUT: api/Admin/categories/{id}
+    [HttpPut("categories/{id}")]
+    public async Task<IActionResult> UpdateCategory(int id, [FromBody] string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return BadRequest(new { message = "Category name cannot be empty." });
+        }
+
+        var categoryToUpdate = await _context.Categories.FindAsync(id);
+        if (categoryToUpdate == null)
+        {
+            return NotFound();
+        }
+
+        // Check if another category with the new name already exists
+        var existingCategory = await _context.Categories.FirstOrDefaultAsync(c => c.Name == name && c.Id != id);
+        if (existingCategory != null)
+        {
+            return Conflict(new { message = "A category with this name already exists." });
+        }
+
+        categoryToUpdate.Name = name;
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    // DELETE: api/Admin/categories/{id}
+    [HttpDelete("categories/{id}")]
+    public async Task<IActionResult> DeleteCategory(int id)
+    {
+        var categoryToDelete = await _context.Categories.Include(c => c.Quizzes).FirstOrDefaultAsync(c => c.Id == id);
+        if (categoryToDelete == null)
+        {
+            return NotFound();
+        }
+
+        if (categoryToDelete.Quizzes.Any())
+        {
+            return BadRequest(new { message = "Cannot delete a category that has quizzes assigned to it." });
+        }
+
+        _context.Categories.Remove(categoryToDelete);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
 }

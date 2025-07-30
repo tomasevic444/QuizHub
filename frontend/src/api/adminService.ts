@@ -2,7 +2,6 @@
 import axios from './axiosConfig';
 import type { Quiz } from '@/interfaces/quiz.interfaces';
 import type { Question } from '@/interfaces/question.interfaces';
-
 export interface AdminQuizUpsert {
   title: string;
   description: string;
@@ -57,4 +56,21 @@ export const updateQuestion = async (questionId: number, question: AdminQuestion
 
 export const deleteQuestion = async (questionId: number): Promise<void> => {
     await axios.delete(`${API_URL}/questions/${questionId}`);
+};
+
+// --- Category Functions ---
+export const createCategory = async (name: string): Promise<void> => {
+    await axios.post(`${API_URL}/categories`, `"${name}"`, {
+        headers: { 'Content-Type': 'application/json' }
+    });
+};
+
+export const updateCategory = async (id: number, name: string): Promise<void> => {
+    await axios.put(`${API_URL}/categories/${id}`, `"${name}"`, {
+        headers: { 'Content-Type': 'application/json' }
+    });
+};
+
+export const deleteCategory = async (id: number): Promise<void> => {
+    await axios.delete(`${API_URL}/categories/${id}`);
 };
