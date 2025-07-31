@@ -2,6 +2,8 @@
 import axios from './axiosConfig';
 import type { Quiz } from '@/interfaces/quiz.interfaces';
 import type { Question } from '@/interfaces/question.interfaces';
+import type { AdminQuizAttempt } from '@/interfaces/admin.interfaces';
+
 export interface AdminQuizUpsert {
   title: string;
   description: string;
@@ -74,3 +76,9 @@ export const updateCategory = async (id: number, name: string): Promise<void> =>
 export const deleteCategory = async (id: number): Promise<void> => {
     await axios.delete(`${API_URL}/categories/${id}`);
 };
+
+// --- User Results Function ---
+export const getAllResults = async (): Promise<AdminQuizAttempt[]> => {
+    const response = await axios.get<AdminQuizAttempt[]>(`${API_URL}/results`);
+    return response.data;
+}
