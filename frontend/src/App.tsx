@@ -21,6 +21,7 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminQuizListPage from './pages/admin/AdminQuizListPage';
 import AdminQuestionListPage from './pages/admin/AdminQuestionListPage';
 import AdminCategoryListPage from './pages/admin/AdminCategoryListPage';
+import AdminResultsPage from './pages/admin/AdminResultsPage';
 
 function HomePage() {
   // 1. Create a state to hold the current filters
@@ -92,6 +93,7 @@ function App() {
         {/* Protected Admin Routes */}
         <Route path="/admin" element={<AdminRoute />}>
           <Route index element={<AdminDashboardPage />} />
+          <Route path="results" element={<AdminResultsPage />} />
           <Route path="categories" element={<AdminCategoryListPage />} />
           <Route path="quizzes" element={<AdminQuizListPage />} />
           <Route path="quizzes/:quizId/questions" element={<AdminQuestionListPage />} />
