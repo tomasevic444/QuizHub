@@ -260,4 +260,23 @@ public class AdminController : ControllerBase
         await _context.SaveChangesAsync();
         return NoContent();
     }
+    // GET: api/Admin/results
+    [HttpGet("results")]
+    public async Task<ActionResult<IEnumerable<AdminQuizAttemptDto>>> GetAllResults()
+    {
+        var allAttempts = await _context.QuizAttempts
+            .Include(qa => qa.Quiz)  
+            .Include(qa => qa.User)  
+            .OrderByDescending(qa => qa.AttemptedAt)
+            .Select(qa => new AdminQuizAttemptDto(
+                qa.Id,
+                qa.Quiz.Title,
+                qa.User.Username,
+                qa.Score,
+                qa.AttemptedAt
+            ))
+            .ToListAsync();
+
+        return Ok(allAttempts);
+    }
 }
