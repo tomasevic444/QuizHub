@@ -47,6 +47,73 @@ public class UsersController : ControllerBase
 
         return Ok(attempts);
     }
+    // GET: api/Users/me/results/{attemptId}
+    [HttpGet("me/results/{attemptId}")]
+    public async Task<ActionResult<QuizResultDto>> GetMyResultDetails(int attemptId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        // 1. Fetch the specific attempt, ensuring it belongs to the current user
+        var attempt = await _context.QuizAttempts
+            .Include(qa => qa.Quiz)
+                .ThenInclude(q => q.Questions)
+                    .ThenInclude(qu => qu.Options)
+            .Include(qa => qa.UserAnswers)
+            .FirstOrDefaultAsync(qa => qa.Id == attemptId && qa.UserId == userId);
+
+        if (attempt == null)
+        {
+            return NotFound("Attempt not found or you do not have permission to view it.");
+        }
+
+        var questionResults = new List<QuestionResultDto>();
+        var correctCount = 0;
+
+        // 2. Loop through each question of the original quiz
+        foreach (var question in attempt.Quiz.Questions)
+        {
+            var userAnswer = attempt.UserAnswers.FirstOrDefault(ua => ua.QuestionId == question.Id);
+            var correctAnswers = question.Options.Where(o => o.IsCorrect).Select(o => o.Text).ToList();
+            var userAnswersAsStrings = new List<string>();
+
+            if (userAnswer != null)
+            {
+                if (userAnswer.IsCorrect) correctCount++;
+
+                if (!string.IsNullOrEmpty(userAnswer.SelectedOptionIds))
+                {
+                    var selectedIds = userAnswer.SelectedOptionIds.Split(',').Select(int.Parse).ToHashSet();
+                    userAnswersAsStrings = question.Options
+                        .Where(o => selectedIds.Contains(o.Id))
+                        .Select(o => o.Text)
+                        .ToList();
+                }
+                else if (!string.IsNullOrEmpty(userAnswer.SubmittedText))
+                {
+                    userAnswersAsStrings.Add(userAnswer.SubmittedText);
+                }
+            }
+
+            questionResults.Add(new QuestionResultDto(
+                question.Text,
+                userAnswersAsStrings,
+                correctAnswers,
+                userAnswer?.IsCorrect ?? false
+            ));
+        }
+
+        // 3. Assemble and return the final DTO
+        var resultDto = new QuizResultDto(
+            attempt.Score,
+            attempt.Quiz.Questions.Sum(q => q.Points),
+            correctCount,
+            attempt.Quiz.Questions.Count,
+            questionResults
+        );
+
+        return Ok(resultDto);
+    }
 
     private int? GetCurrentUserId()
     {
