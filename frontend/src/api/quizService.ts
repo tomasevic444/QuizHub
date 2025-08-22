@@ -58,7 +58,9 @@ export const submitQuiz = async (quizId: number, submission: QuizSubmission): Pr
         throw error;
     }
 };
-export const getLeaderboard = async (quizId: number): Promise<LeaderboardEntry[]> => {
-    const response = await axios.get<LeaderboardEntry[]>(`${API_URL}/${quizId}/leaderboard`);
+
+export type LeaderboardPeriod = 'alltime' | 'monthly' | 'weekly';
+export const getLeaderboard = async (quizId: number, period: LeaderboardPeriod): Promise<LeaderboardEntry[]> => {
+    const response = await axios.get<LeaderboardEntry[]>(`${API_URL}/${quizId}/leaderboard?period=${period}`);
     return response.data;
 }
