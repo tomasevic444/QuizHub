@@ -136,30 +136,48 @@ public class QuizzesController : ControllerBase
         }
     }
     [HttpGet("{id}/leaderboard")]
-    public async Task<ActionResult<IEnumerable<LeaderboardEntryDto>>> GetLeaderboard(int id, [FromQuery] int topN = 10)
+    public async Task<ActionResult<IEnumerable<LeaderboardEntryDto>>> GetLeaderboard(
+     int id,
+     [FromQuery] int topN = 10,
+     [FromQuery] string period = "alltime") 
     {
-        // --- STEP 1: Calculate Total Possible Score for the Quiz ---
-        // We do this once at the beginning for efficiency.
         var totalPossibleScore = await _context.Questions
             .Where(q => q.QuizId == id)
             .SumAsync(q => q.Points);
 
-        // If the quiz has no questions or points, prevent division by zero.
         if (totalPossibleScore == 0)
         {
-            // Return an empty leaderboard if the quiz is not scorable.
             return Ok(Enumerable.Empty<LeaderboardEntryDto>());
         }
 
-        // --- STEP 2: Fetch all relevant attempts from the database ---
-        var allAttemptsForQuiz = await _context.QuizAttempts
+        IQueryable<QuizAttempt> attemptsQuery = _context.QuizAttempts
             .AsNoTracking()
-            .Where(qa => qa.QuizId == id && qa.User != null)
+            .Where(qa => qa.QuizId == id && qa.User != null);
+
+        // Calculate the start date based on the period
+        DateTime? startDate = null;
+        switch (period.ToLower())
+        {
+            case "weekly":
+                startDate = DateTime.UtcNow.AddDays(-7);
+                break;
+            case "monthly":
+                startDate = DateTime.UtcNow.AddMonths(-1);
+                break;
+        }
+
+        // If a start date is set, apply the date filter to the query
+        if (startDate.HasValue)
+        {
+            attemptsQuery = attemptsQuery.Where(qa => qa.AttemptedAt >= startDate.Value);
+        }
+
+        // fetch the filtered attempts from the database
+        var filteredAttempts = await attemptsQuery
             .Include(qa => qa.User)
             .ToListAsync();
 
-        // --- STEP 3: Process the data in memory using LINQ to Objects ---
-        var topScores = allAttemptsForQuiz
+        var topScores = filteredAttempts
             .GroupBy(qa => qa.UserId)
             .Select(userGroup => userGroup
                 .OrderByDescending(qa => qa.Score)
@@ -170,12 +188,10 @@ public class QuizzesController : ControllerBase
             .Take(topN)
             .ToList();
 
-        // --- STEP 4: Map the final list to our DTO, now including the percentage ---
         var leaderboard = topScores.Select((attempt, index) => new LeaderboardEntryDto(
             index + 1,
             attempt.User.Username,
             attempt.Score,
-            // Calculate and add the percentage here
             Math.Round((double)attempt.Score / totalPossibleScore * 100, 2),
             attempt.TimeTakenInSeconds,
             attempt.AttemptedAt
