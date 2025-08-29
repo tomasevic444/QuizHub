@@ -18,6 +18,7 @@ import AdminQuizListPage from './pages/admin/AdminQuizListPage';
 import AdminQuestionListPage from './pages/admin/AdminQuestionListPage';
 import AdminCategoryListPage from './pages/admin/AdminCategoryListPage';
 import AdminResultsPage from './pages/admin/AdminResultsPage';
+import LiveArenaPage from './pages/LiveArenaPage';
 
 // Import Route protectors
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -38,6 +39,7 @@ function App() {
         
         {/* Protected User Routes */}
         <Route element={<ProtectedRoute />}>
+         <Route path="/live" element={<LiveArenaPage />} />
           <Route path="/my-results" element={<MyResultsPage />} />
           <Route path="/my-results/:attemptId" element={<MyResultDetailPage />} />
         </Route>

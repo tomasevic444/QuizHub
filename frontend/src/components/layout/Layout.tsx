@@ -30,6 +30,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </Link>
             {user ? (
               <>
+                <Link to="/live" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+                Live Arena
+                </Link>
                 <Link to="/my-results" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
                   My Results
                 </Link>
