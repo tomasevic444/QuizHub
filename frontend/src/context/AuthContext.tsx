@@ -1,63 +1,78 @@
 // src/context/AuthContext.tsx
+
 import React, { createContext, useState, useContext, type ReactNode, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import { login as apiLogin } from '../api/authService';
 import { type UserLogin } from '../interfaces/auth.interfaces';
-import { jwtDecode } from 'jwt-decode';
-
 
 interface UserData {
     username: string;
     role: string;
 }
 
-// 1. Define the shape of the context's value
 interface AuthContextType {
-  user: UserData | null; // Holds user data if logged in, otherwise null
+  user: UserData | null;
+  token: string | null;
   login: (data: UserLogin) => Promise<void>;
   logout: () => void;
-  isLoading: boolean; // To handle initial page load
-  token: string | null; // To easily access the token
+  isLoading: boolean;
 }
 
-// 2. Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// 3. Create the Provider component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserData | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
-useEffect(() => {
+  useEffect(() => {
     const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-        const decodedToken: any = jwtDecode(storedToken);
-        setUser({ username: decodedToken.name, role: decodedToken.role });
+    const storedUser = localStorage.getItem('user');
+    if (storedToken && storedUser) {
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        localStorage.clear();
+      }
     }
     setIsLoading(false);
-}, []);
+  }, []);
 
-const login = async (data: UserLogin) => {
-    const response = await apiLogin(data);
-    const token = response.data.token;
-    const decodedToken: any = jwtDecode(token);
-    const userData = { username: decodedToken.name, role: decodedToken.role };
+  const login = async (data: UserLogin) => {
+    const authResponse = await apiLogin(data);
+    const newToken = authResponse.token;
+    
+    const decodedToken: any = jwtDecode(newToken);
+    
+    const userData: UserData = {
+      username: decodedToken.name, // Use the simple 'name' key
+      role: decodedToken.role     // Use the simple 'role' key
+    };
 
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData)); // Store decoded data
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('user', JSON.stringify(userData));
+    
+    setToken(newToken);
     setUser(userData);
-};
-
-  // Logout function
+    
+    if (userData.role === 'Admin') {
+      navigate('/admin');
+    } else {
+      navigate('/');
+    }
+  };
+  
   const logout = () => {
-    setUser(null);
+    localStorage.clear();
     setToken(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    setUser(null);
+    navigate('/login');
   };
 
-  // Provide the state and functions to all child components
-  const value = { user, login, logout, isLoading, token };
+  const value = { user, token, login, logout, isLoading };
 
   return (
     <AuthContext.Provider value={value}>
@@ -66,7 +81,6 @@ const login = async (data: UserLogin) => {
   );
 };
 
-// 4. Create a custom hook for easy access to the context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

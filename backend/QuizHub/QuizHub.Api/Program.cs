@@ -19,6 +19,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // 2. Register application services for Dependency Injection
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IQuizService, QuizService>();
+builder.Services.AddSingleton<ILiveQuizService, LiveQuizService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
