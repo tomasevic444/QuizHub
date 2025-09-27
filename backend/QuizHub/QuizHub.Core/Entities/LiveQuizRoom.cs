@@ -1,5 +1,6 @@
 ﻿using QuizHub.Core.Entities;
 using System.Collections.Concurrent;
+using System.Threading;
 
 public class LiveQuizRoom
 {
@@ -10,4 +11,7 @@ public class LiveQuizRoom
     public int CurrentQuestionIndex { get; set; } = -1; // -1 means not started
     public DateTime QuestionStartTime { get; set; }
     public bool IsFinished { get; set; } = false;
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Timer? QuestionTimer { get; set; }
 }
