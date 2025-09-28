@@ -14,7 +14,7 @@ interface UserData {
 interface AuthContextType {
   user: UserData | null;
   token: string | null;
-  login: (data: UserLogin) => Promise<void>;
+  login: (data: UserLogin) => Promise<UserData>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -41,29 +41,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(false);
   }, []);
 
-  const login = async (data: UserLogin) => {
-    const authResponse = await apiLogin(data);
-    const newToken = authResponse.token;
-    
-    const decodedToken: any = jwtDecode(newToken);
-    
-    const userData: UserData = {
-      username: decodedToken.name, // Use the simple 'name' key
-      role: decodedToken.role     // Use the simple 'role' key
-    };
+  const login = async (data: UserLogin): Promise<UserData> => {
+  const authResponse = await apiLogin(data);
+  const newToken = authResponse.token;
+  const decodedToken: any = jwtDecode(newToken);
 
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(userData));
-    
-    setToken(newToken);
-    setUser(userData);
-    
-    if (userData.role === 'Admin') {
-      navigate('/admin');
-    } else {
-      navigate('/');
-    }
+  const userData: UserData = {
+    username: decodedToken.name,
+    role: decodedToken.role ?? decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
   };
+
+  localStorage.setItem('token', newToken);
+  localStorage.setItem('user', JSON.stringify(userData));
+
+  setToken(newToken);
+  setUser(userData);
+
+  return userData; 
+};
   
   const logout = () => {
     localStorage.clear();

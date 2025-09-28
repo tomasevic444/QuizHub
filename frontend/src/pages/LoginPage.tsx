@@ -16,26 +16,28 @@ const LoginPage = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-        try {
-            await login({ loginIdentifier, password });
-            navigate('/'); // Redirect to home page on success
-        } catch (err: any) {
-            const errorData = err.response?.data;
+   const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError(null);
+  try {
+    const loggedInUser = await login({ loginIdentifier, password });
 
-            if (errorData && errorData.message) {
-                // This handles our custom error message: { "message": "Invalid credentials." }
-                setError(errorData.message);
-            } else if (errorData && errorData.title) {
-                // This handles default ASP.NET validation errors, in case they ever happen here
-                setError(errorData.title);
-            } else {
-                setError('Login failed. Please check your credentials and try again.');
-            }
-        }
-    };
+    if (loggedInUser.role === 'Admin') {
+      navigate('/admin');
+    } else {
+      navigate('/');
+    }
+  } catch (err: any) {
+    const errorData = err.response?.data;
+    if (errorData?.message) {
+      setError(errorData.message);
+    } else if (errorData?.title) {
+      setError(errorData.title);
+    } else {
+      setError('Login failed. Please check your credentials and try again.');
+    }
+  }
+};
 
     return (
         <div className="flex items-center justify-center py-12">
