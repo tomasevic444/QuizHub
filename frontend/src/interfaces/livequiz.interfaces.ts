@@ -11,11 +11,11 @@ export interface LiveOption {
     id: number;
     text: string;
 }
-
+export type QuestionType = 'SingleChoice' | 'MultipleChoice' | 'TrueFalse' | 'FillInTheBlank';
 export interface LiveQuestion {
     index: number;
     text: string;
-    type: 'SingleChoice' | 'MultipleChoice' | 'TrueFalse'; 
+    type: QuestionType;
     timeLimit: number;
     options: LiveOption[];
 }

@@ -116,7 +116,7 @@ public class LiveQuizService : ILiveQuizService
         return null;
     }
 
-    public int CalculateScore(string roomCode, string connectionId, List<int> submittedOptionIds)
+    public int CalculateScore(string roomCode, string connectionId, List<int>? submittedOptionIds, string? textAnswer)
     {
         var room = GetRoom(roomCode);
         if (room == null || room.CurrentQuestionIndex < 0) return 0;
@@ -127,22 +127,29 @@ public class LiveQuizService : ILiveQuizService
         }
 
         player.HasAnsweredCurrentQuestion = true;
-
         var question = room.QuizData.Questions.ElementAt(room.CurrentQuestionIndex);
-        var correctOptionIds = question.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+        bool isCorrect = false;
 
-        bool isCorrect = correctOptionIds.SetEquals(submittedOptionIds ?? new List<int>());
+        if (question.Type == QuestionType.FillInTheBlank)
+        {
+            var correctAnswer = question.Options.FirstOrDefault(o => o.IsCorrect)?.Text;
+            if (correctAnswer != null && correctAnswer.Equals(textAnswer, StringComparison.OrdinalIgnoreCase))
+            {
+                isCorrect = true;
+            }
+        }
+        else // SingleChoice, MultipleChoice, TrueFalse
+        {
+            var correctOptionIds = question.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+            isCorrect = correctOptionIds.SetEquals(submittedOptionIds ?? new List<int>());
+        }
 
         if (isCorrect)
         {
             var timeTaken = (DateTime.UtcNow - room.QuestionStartTime).TotalSeconds;
-            const int questionTimeLimit = 20; 
-
-            // Bonus points linear with time left
-            double speedFactor = Math.Max(0, (questionTimeLimit - timeTaken) / questionTimeLimit);
-
+            const int questionTimeLimit = 20;
+            double speedFactor = Math.Max(0, (questionTimeLimit - timeTaken) / timeTaken);
             int speedBonus = (int)Math.Round(question.Points * 0.5 * speedFactor);
-
             int pointsAwarded = question.Points + speedBonus;
             player.Score += pointsAwarded;
         }

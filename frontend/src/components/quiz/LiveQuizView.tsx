@@ -3,42 +3,49 @@ import type { LiveQuestion } from '@/interfaces/livequiz.interfaces';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input'; 
+
+interface LiveAnswerPayload {
+    optionIds?: number[];
+    textAnswer?: string;
+}
 
 interface LiveQuizViewProps {
     question: LiveQuestion;
-    onAnswerSubmit: (optionIds: number[]) => void;
+    onAnswerSubmit: (answer: LiveAnswerPayload) => void;
 }
 
 export const LiveQuizView: React.FC<LiveQuizViewProps> = ({ question, onAnswerSubmit }) => {
     const [timeLeft, setTimeLeft] = useState(question.timeLimit);
     const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
+    const [textAnswer, setTextAnswer] = useState(''); 
     const [isAnswered, setIsAnswered] = useState(false);
 
+
     useEffect(() => {
-    setTimeLeft(question.timeLimit);
-    setSelectedAnswers([]);
-    setIsAnswered(false);
+        setTimeLeft(question.timeLimit);
+        setSelectedAnswers([]);
+        setTextAnswer(''); 
+        setIsAnswered(false);
 
-    const timer = setInterval(() => {
-        setTimeLeft(prev => {
-            if (prev <= 1) {
-                clearInterval(timer);
-                if (!isAnswered) {
-                    onAnswerSubmit([]);
+        const timer = setInterval(() => {
+            setTimeLeft(prevTime => {
+                if (prevTime <= 1) {
+                    clearInterval(timer);
+                    onAnswerSubmit({}); 
+                    return 0;
                 }
-                return 0;
-            }
-            return prev - 1;
-        });
-    }, 1000);
+                return prevTime - 1;
+            });
+        }, 1000);
 
-    return () => clearInterval(timer);
-}, [question]); 
+        return () => clearInterval(timer);
+    }, [question]);
 
     const handleAnswerClick = (optionId: number) => {
         if (question.type === 'SingleChoice' || question.type === 'TrueFalse') {
             setSelectedAnswers([optionId]);
-        } else { // MultipleChoice
+        } else {
             setSelectedAnswers(prev => 
                 prev.includes(optionId) 
                     ? prev.filter(id => id !== optionId) 
@@ -48,8 +55,47 @@ export const LiveQuizView: React.FC<LiveQuizViewProps> = ({ question, onAnswerSu
     };
     
     const handleSubmit = () => {
+        if (isAnswered) return;
         setIsAnswered(true);
-        onAnswerSubmit(selectedAnswers);
+
+        let payload: LiveAnswerPayload = {};
+        if (question.type === 'FillInTheBlank') {
+            payload = { textAnswer: textAnswer.trim() };
+        } else {
+            payload = { optionIds: selectedAnswers };
+        }
+        onAnswerSubmit(payload);
+    };
+
+    const renderAnswerField = () => {
+        if (question.type === 'FillInTheBlank') {
+            return (
+                <Input
+                    placeholder="Type your answer here..."
+                    value={textAnswer}
+                    onChange={(e) => setTextAnswer(e.target.value)}
+                    disabled={isAnswered}
+                    className="text-lg"
+                />
+            );
+        }
+
+        //  SingleChoice, MultipleChoice, TrueFalse
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {question.options.map(opt => (
+                    <Button
+                        key={opt.id}
+                        variant={selectedAnswers.includes(opt.id) ? 'default' : 'outline'}
+                        onClick={() => handleAnswerClick(opt.id)}
+                        disabled={isAnswered}
+                        className="h-auto py-4 text-wrap"
+                    >
+                        {opt.text}
+                    </Button>
+                ))}
+            </div>
+        );
     };
 
     return (
@@ -62,24 +108,12 @@ export const LiveQuizView: React.FC<LiveQuizViewProps> = ({ question, onAnswerSu
                     <CardTitle className="text-2xl">{question.text}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {question.options.map(opt => (
-                            <Button
-                                key={opt.id}
-                                variant={selectedAnswers.includes(opt.id) ? 'default' : 'outline'}
-                                onClick={() => handleAnswerClick(opt.id)}
-                                disabled={isAnswered}
-                                className="h-auto py-4 text-wrap"
-                            >
-                                {opt.text}
-                            </Button>
-                        ))}
-                    </div>
+                    {renderAnswerField()}
                 </CardContent>
             </Card>
 
             <div className="flex justify-end">
-                <Button onClick={handleSubmit} disabled={isAnswered || selectedAnswers.length === 0}>
+                <Button onClick={handleSubmit} disabled={isAnswered || (selectedAnswers.length === 0 && textAnswer.trim() === '')}>
                     {isAnswered ? 'Waiting for next question...' : 'Submit Answer'}
                 </Button>
             </div>

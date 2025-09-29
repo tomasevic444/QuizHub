@@ -11,6 +11,10 @@ import { LiveQuizView } from '@/components/quiz/LiveQuizView';
 import { LiveResultView } from '@/components/quiz/LiveResultView';
 import { LiveFinishedView } from '@/components/quiz/LiveFinishedView';
 
+interface LiveAnswerPayload {
+    optionIds?: number[];
+    textAnswer?: string;
+}
 const LiveArenaPage = () => {
     const { connect, disconnect, connection, isConnected } = useSignalR();
     const [roomCode, setRoomCode] = useState('');
@@ -92,9 +96,9 @@ const LiveArenaPage = () => {
         }
     };
     
-    const handleAnswerSubmit = (optionIds: number[]) => {
+    const handleAnswerSubmit = (answer: LiveAnswerPayload) => {
         if (connection && roomCode) {
-            connection.invoke("PlayerSubmitAnswer", roomCode, optionIds);
+            connection.invoke("PlayerSubmitAnswer", roomCode, answer);
         }
     };
 

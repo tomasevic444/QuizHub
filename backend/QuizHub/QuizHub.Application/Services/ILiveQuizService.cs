@@ -22,5 +22,5 @@ public interface ILiveQuizService
     LiveQuestionDto? GetNextQuestion(string roomCode);
 
     // The signature must include the player's submitted answer IDs
-    int CalculateScore(string roomCode, string connectionId, List<int> optionIds);
+    int CalculateScore(string roomCode, string connectionId, List<int>? optionIds, string? textAnswer);
 }

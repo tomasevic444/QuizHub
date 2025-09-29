@@ -17,6 +17,12 @@ public class QuizHub : Hub<IQuizHubClient>
         _liveQuizService = liveQuizService;
     }
 
+    public class PlayerAnswerDto
+    {
+        public List<int>? OptionIds { get; set; }
+        public string? TextAnswer { get; set; }
+    }
+
     public override async Task OnConnectedAsync()
     {
         Console.WriteLine($"--> Client connected: {Context.ConnectionId}");
@@ -145,11 +151,12 @@ public class QuizHub : Hub<IQuizHubClient>
         }
     }
 
-    public async Task PlayerSubmitAnswer(string roomCode, List<int> optionIds)
+    public async Task PlayerSubmitAnswer(string roomCode, PlayerAnswerDto answer)
     {
         var connectionId = Context.ConnectionId;
-        _liveQuizService.CalculateScore(roomCode, connectionId, optionIds);
-        // ISPRAVKA:
+
+        _liveQuizService.CalculateScore(roomCode, connectionId, answer.OptionIds, answer.TextAnswer);
+
         await Clients.Caller.AnswerAcknowledged();
     }
 }
