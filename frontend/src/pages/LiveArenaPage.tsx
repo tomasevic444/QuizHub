@@ -88,7 +88,7 @@ const LiveArenaPage = () => {
         setError(null);
         if (connection && roomCode) {
             connection.invoke('JoinRoom', roomCode.toUpperCase())
-                .catch(err => setError("Could not join the room. Check the code."));
+                .catch(() => setError("Could not join the room. Check the code."));
         }
     };
     
