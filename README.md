@@ -6,6 +6,17 @@ QuizHub is a full-stack web application that allows users to take quizzes in dif
 
 The project was developed as part of a university course and demonstrates the application of modern technologies and good practices in web development.
 
+## Video Demo
+
+A short demo video showcasing the main features of **QuizHub**, including  taking quizzes, the real-time quiz arena, leaderboard, and the admin panel.
+ 
+
+https://github.com/user-attachments/assets/3891fe1a-4586-4ede-911e-5d5484d4ca03
+
+
+
+
+---
 ---
 
 ## Technologies
@@ -53,12 +64,22 @@ To run the project locally, you need the following tools installed:
     ```
 
 2.  **Configure Environment File:**
-    *   Open the backend solution in Visual Studiou (`backend/QuizHub.sln`).
-    *   Open the file `backend/QuizHub.Api/appsettings.Development.json`.
-    *   Find the `ConnectionStrings` section and update the `DefaultConnection` string to match your local SQL Server instance. The default value is:
+    *   Open the backend solution in Visual Studio (`backend/QuizHub.sln`).
+    *   Open the file `backend/QuizHub.Api/appsettings.Development.json` (or create it if it doesn’t exist).
+    *   Replace the content of that file (or update it) with the following configuration:
+
         ```json
-        "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=QuizHubDb;Trusted_Connection=True;TrustServerCertificate=True;"
-        ```
+        {
+          "ConnectionStrings": {
+            "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=QuizHubDb;Trusted_Connection=True;TrustServerCertificate=True;"
+          },
+          "JwtSettings": {
+            "Key": "THIS_IS_A_SUPER_SECRET_AND_LONG_KEY_FOR_JWT_SIGNING",
+            "Issuer": "QuizHubApi",
+            "Audience": "QuizHubClient",
+            "DurationInMinutes": 60
+          }
+        }
 
 3.  **Apply Migrations:**
     *   In Visual Studio, open the **Package Manager Console** (`Tools -> NuGet Package Manager -> Package Manager Console`).
